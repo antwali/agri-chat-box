@@ -133,8 +133,10 @@ docker run -d -p 9200:9200 -e "discovery.type=single-node" -e "DISABLE_SECURITY_
 - `GET /health` - Health status
 - `POST /ask` - Ask a question
 - `POST /ingest` - Upload a document
-- `GET /docs` - List all documents
-- `DELETE /docs/{doc_id}` - Delete a document
+- `GET /api/documents` - List all documents
+- `DELETE /api/documents/{doc_id}` - Delete a document
+
+For detailed API documentation, see [docs/API.md](docs/API.md) or visit http://localhost:8000/docs
 
 ## Development
 
