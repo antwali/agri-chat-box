@@ -4,7 +4,6 @@ from functools import lru_cache
 class Settings(BaseSettings):
     # AWS
     aws_region: str = "us-east-1"
-    s3_bucket: str
     opensearch_endpoint: str = ""
     
     # Bedrock
@@ -27,6 +26,7 @@ class Settings(BaseSettings):
     
     class Config:
         env_file = ".env"
+        extra = "ignore"  # Ignore extra environment variables
 
 @lru_cache()
 def get_settings():

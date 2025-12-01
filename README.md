@@ -1,27 +1,31 @@
-# Agri-Chat - Conversational FAQ Assistant
+# Agri-Chat - Simple Chatbox with RAG
 
-A proof-of-concept conversational assistant for CoBank applications using RAG (Retrieval-Augmented Generation).
+A simple conversational chatbox using RAG (Retrieval-Augmented Generation) that lets you upload documents and ask questions about them.
 
 ## Features
 
-- Natural language Q&A over curated documents
-- Source citations
-- Admin document management
-- LangGraph orchestration
-- AWS Bedrock LLM integration
+- 📄 Upload documents (PDF, DOCX, TXT, MD)
+- 💬 Natural language Q&A over your documents
+- 📚 Source citations for answers
+- 🔍 Document management (list, delete)
+- 🚀 Simple setup - no S3 required!
 
 ## Tech Stack
 
-- **Frontend**: React + TypeScript
-- **Backend**: Python + LangGraph
-- **LLM**: AWS Bedrock (Claude/Titan)
-- **Vector Store**: OpenSearch Serverless
-- **Storage**: AWS S3
-- **Deployment**: AWS (personal account)
+- **Frontend**: React + TypeScript + Tailwind CSS
+- **Backend**: FastAPI + Python
+- **LLM**: AWS Bedrock (Claude 3 Sonnet)
+- **Embeddings**: AWS Bedrock (Titan)
+- **Vector Store**: OpenSearch (local Docker)
 
-## Setup
+## Quick Start
 
-See [docs/SETUP.md](docs/SETUP.md) for complete setup instructions.
+1. Set up AWS credentials
+2. Create `.env` file with `AWS_REGION=us-east-1`
+3. Run `docker-compose up --build`
+4. Open http://localhost:3000
+
+See [RUN.md](RUN.md) for complete setup instructions.
 
 ## License
 

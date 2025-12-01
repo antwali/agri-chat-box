@@ -1,6 +1,13 @@
 import axios from 'axios';
 
+// Use the environment variable or default to localhost:8000
+// In the browser, this will be http://localhost:8000
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+
+// Log the API URL for debugging (only in development)
+if (process.env.NODE_ENV === 'development') {
+  console.log('API Base URL:', API_BASE_URL);
+}
 
 export interface Message {
   role: 'user' | 'assistant' | 'system';
@@ -29,9 +36,15 @@ export interface AskResponse {
 
 const api = axios.create({
   baseURL: API_BASE_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
+  timeout: 120000, // 2 minutes timeout for LLM requests
+});
+
+// Add request interceptor to set JSON content type only for non-FormData requests
+api.interceptors.request.use((config) => {
+  if (!(config.data instanceof FormData)) {
+    config.headers['Content-Type'] = 'application/json';
+  }
+  return config;
 });
 
 export const askQuestion = async (request: AskRequest): Promise<AskResponse> => {
@@ -42,13 +55,12 @@ export const askQuestion = async (request: AskRequest): Promise<AskResponse> => 
 export const uploadDocument = async (file: File, metadata: any) => {
   const formData = new FormData();
   formData.append('file', file);
-  formData.append('metadata', JSON.stringify(metadata));
+  if (metadata) {
+    formData.append('metadata', JSON.stringify(metadata));
+  }
   
-  const response = await api.post('/ingest', formData, {
-    headers: {
-      'Content-Type': 'multipart/form-data',
-    },
-  });
+  // Don't set Content-Type header - let the browser set it with boundary
+  const response = await api.post('/ingest', formData);
   return response.data;
 };
 

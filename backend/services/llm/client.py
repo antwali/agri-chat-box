@@ -13,18 +13,19 @@ class BedrockClient:
     
     def generate_response(self, prompt: str, system: str = "") -> str:
         """Generate response using Claude."""
-        body = json.dumps({
+        messages = [{"role": "user", "content": prompt}]
+        
+        body = {
             "anthropic_version": "bedrock-2023-05-31",
             "max_tokens": self.settings.max_tokens,
             "temperature": self.settings.temperature,
-            "system": system,
-            "messages": [
-                {
-                    "role": "user",
-                    "content": prompt
-                }
-            ]
-        })
+            "messages": messages
+        }
+        
+        if system:
+            body["system"] = system
+        
+        body = json.dumps(body)
         
         response = self.bedrock_runtime.invoke_model(
             modelId=self.settings.bedrock_model_id,
