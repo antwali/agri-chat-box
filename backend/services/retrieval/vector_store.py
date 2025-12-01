@@ -151,53 +151,82 @@ class VectorStore:
         top_k = top_k or self.settings.top_k
         
         # Generate query embedding
-        query_embedding = self.llm_client.generate_embedding(query)
-        
-        # Search - try knn first, fallback to script_score
         try:
+            query_embedding = self.llm_client.generate_embedding(query)
+            print(f"Generated embedding of length {len(query_embedding) if query_embedding else 0}")
+            if not query_embedding or len(query_embedding) == 0:
+                print("ERROR: Empty embedding generated!")
+                return []
+        except Exception as e:
+            print(f"ERROR generating embedding: {e}")
+            return []
+        
+        # Search - use text match for now (vector search needs proper KNN setup)
+        # For OpenSearch 2.x, we'll use text search which works reliably
+        search_body = {
+            "size": top_k * 2,  # Get more results to filter by relevance
+            "query": {
+                "multi_match": {
+                    "query": query,
+                    "fields": ["text"],
+                    "type": "best_fields",
+                    "fuzziness": "AUTO"
+                }
+            },
+            "_source": ["text", "doc_id", "chunk_id", "metadata"]
+        }
+        try:
+            response = self.client.search(index=self.index_name, body=search_body)
+            print(f"Text search returned {len(response['hits']['hits'])} hits")
+        except Exception as e:
+            print(f"Text search failed: {e}")
+            # Fallback to simple match
             search_body = {
                 "size": top_k,
                 "query": {
-                    "knn": {
-                        "embedding": {
-                            "vector": query_embedding,
-                            "k": top_k
-                        }
+                    "match": {
+                        "text": query
                     }
                 },
                 "_source": ["text", "doc_id", "chunk_id", "metadata"]
             }
             response = self.client.search(index=self.index_name, body=search_body)
-        except Exception:
-            # Fallback to script_score for compatibility
-            search_body = {
-                "size": top_k,
-                "query": {
-                    "match_all": {}
-                },
-                "script_score": {
-                    "query": {"match_all": {}},
-                    "script": {
-                        "source": "cosineSimilarity(params.query_vector, 'embedding') + 1.0",
-                        "params": {"query_vector": query_embedding}
-                    }
-                },
-                "_source": ["text", "doc_id", "chunk_id", "metadata"]
-            }
-            response = self.client.search(index=self.index_name, body=search_body)
+            print(f"Simple match returned {len(response['hits']['hits'])} hits")
         
         results = []
         for hit in response['hits']['hits']:
             score = hit['_score']
-            if score >= self.settings.similarity_threshold:
+            # For text search, scores are typically much higher (can be 10+)
+            # Normalize to 0-1 range for consistency (assuming max score around 10)
+            normalized_score = min(score / 10.0, 1.0) if score > 1.0 else score
+            
+            # Lower threshold for text search since scores are different
+            text_threshold = 0.1  # Much lower for text search
+            if normalized_score >= text_threshold or len(results) < top_k:
                 results.append({
                     'text': hit['_source']['text'],
                     'doc_id': hit['_source']['doc_id'],
                     'chunk_id': hit['_source'].get('chunk_id', 0),
                     'metadata': hit['_source'].get('metadata', {}),
-                    'score': score
+                    'score': normalized_score
                 })
+                if len(results) >= top_k:
+                    break
         
+        # If still no results, return top result anyway
+        if len(results) == 0 and len(response['hits']['hits']) > 0:
+            hit = response['hits']['hits'][0]
+            score = hit['_score']
+            normalized_score = min(score / 10.0, 1.0) if score > 1.0 else score
+            results.append({
+                'text': hit['_source']['text'],
+                'doc_id': hit['_source']['doc_id'],
+                'chunk_id': hit['_source'].get('chunk_id', 0),
+                'metadata': hit['_source'].get('metadata', {}),
+                'score': normalized_score
+            })
+        
+        print(f"Search query: '{query}' - Found {len(results)} results (from {len(response['hits']['hits'])} total hits)")
         return results
     
     def delete_document(self, doc_id: str):

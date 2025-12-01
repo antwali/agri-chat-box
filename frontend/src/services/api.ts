@@ -65,8 +65,9 @@ export const uploadDocument = async (file: File, metadata: any) => {
 };
 
 export const listDocuments = async () => {
-  const response = await api.get('/docs');
-  return response.data;
+  const response = await api.get('/api/documents');
+  // Ensure we always return an array
+  return Array.isArray(response.data) ? response.data : [];
 };
 
 export default api;

@@ -14,7 +14,7 @@ class Settings(BaseSettings):
     chunk_size: int = 1000
     chunk_overlap: int = 200
     top_k: int = 5
-    similarity_threshold: float = 0.7
+    similarity_threshold: float = 0.3  # Lowered to find more relevant documents
     
     # LLM
     max_tokens: int = 2000

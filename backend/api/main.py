@@ -92,7 +92,7 @@ async def ingest_document(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.get("/docs", response_model=List[DocumentInfo])
+@app.get("/api/documents", response_model=List[DocumentInfo])
 async def list_documents():
     """List all ingested documents."""
     try:
@@ -108,7 +108,7 @@ async def list_documents():
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.delete("/docs/{doc_id}")
+@app.delete("/api/documents/{doc_id}")
 async def delete_document(doc_id: str):
     """Delete a document."""
     try:
