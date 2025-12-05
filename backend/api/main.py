@@ -117,6 +117,15 @@ async def delete_document(doc_id: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.delete("/api/documents")
+async def delete_all_documents():
+    """Delete all documents."""
+    try:
+        vector_store.delete_all_documents()
+        return {"status": "deleted", "message": "All documents deleted"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)

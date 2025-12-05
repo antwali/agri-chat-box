@@ -241,6 +241,18 @@ class VectorStore:
         )
         self.client.indices.refresh(index=self.index_name)
     
+    def delete_all_documents(self):
+        """Delete all documents from the index."""
+        self.client.delete_by_query(
+            index=self.index_name,
+            body={
+                "query": {
+                    "match_all": {}
+                }
+            }
+        )
+        self.client.indices.refresh(index=self.index_name)
+    
     def list_documents(self) -> List[Dict]:
         """List all unique documents."""
         response = self.client.search(

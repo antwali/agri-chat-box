@@ -70,4 +70,14 @@ export const listDocuments = async () => {
   return Array.isArray(response.data) ? response.data : [];
 };
 
+export const deleteDocument = async (docId: string) => {
+  const response = await api.delete(`/api/documents/${docId}`);
+  return response.data;
+};
+
+export const deleteAllDocuments = async () => {
+  const response = await api.delete('/api/documents');
+  return response.data;
+};
+
 export default api;
